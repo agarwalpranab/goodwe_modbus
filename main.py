@@ -49,7 +49,7 @@ async def test_connection(
     try:
         # Connect to inverter
         print(f"\n🔌 Connecting to inverter at {host}:{port}...")
-        inverter = await connect(host, port, comm_addr)
+        inverter = await connect(host, port, comm_addr=comm_addr)
         print(f"✓ Connected successfully!")
         
         # Get inverter information

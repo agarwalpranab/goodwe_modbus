@@ -41,9 +41,10 @@ async def validate_input(data: dict[str, Any]) -> dict[str, Any]:
     try:
         # Attempt to connect to the inverter
         if protocol == PROTOCOL_UDP:
-            inverter = await connect(host, port or DEFAULT_PORT_UDP, comm_addr)
+            inverter = await connect(host, port or DEFAULT_PORT_UDP, comm_addr=comm_addr)
         else:  # TCP
-            inverter = await connect(host, port or DEFAULT_PORT_TCP, comm_addr)
+            _LOGGER.debug("TCP configured %s", PROTOCOL_TCP)
+            inverter = await connect(host, port or DEFAULT_PORT_TCP, comm_addr=comm_addr)
 
         # Try to read runtime data to verify connection
         await inverter.read_runtime_data()
