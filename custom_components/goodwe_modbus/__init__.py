@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from typing import cast
 
 from goodwe import connect
 
@@ -12,8 +13,10 @@ from homeassistant.exceptions import ConfigEntryNotReady
 
 from .const import (
     CONF_COMM_ADDR,
+    CONF_FAMILY,
     CONF_PROTOCOL,
     DEFAULT_COMM_ADDR,
+    DEFAULT_FAMILY,
     DEFAULT_PORT_TCP,
     DEFAULT_PORT_UDP,
     DEFAULT_SCAN_INTERVAL,
@@ -34,6 +37,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     port = entry.data.get(CONF_PORT)
     protocol = entry.data[CONF_PROTOCOL]
     comm_addr = entry.data.get(CONF_COMM_ADDR, DEFAULT_COMM_ADDR)
+    family: str = entry.data.get(CONF_FAMILY, DEFAULT_FAMILY)
+    family_arg: str | None = None if family == DEFAULT_FAMILY else family
     scan_interval = entry.options.get(CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL)
 
     # Determine the correct port based on protocol
@@ -43,12 +48,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     try:
         # Connect to the inverter
         _LOGGER.debug(
-            "Connecting to Goodwe inverter at %s:%s using %s protocol",
+            "Connecting to Goodwe inverter at %s:%s using %s protocol, family=%s",
             host,
             port,
             protocol,
+            family,
         )
-        inverter = await connect(host, port, comm_addr)
+        inverter = await connect(host, port, family=cast(str, family_arg), comm_addr=comm_addr)
 
         # Verify connection by reading runtime data
         await inverter.read_runtime_data()

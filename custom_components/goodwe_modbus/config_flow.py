@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, cast
 
 import voluptuous as vol
 from goodwe import connect
@@ -15,12 +15,15 @@ import homeassistant.helpers.config_validation as cv
 
 from .const import (
     CONF_COMM_ADDR,
+    CONF_FAMILY,
     CONF_PROTOCOL,
     DEFAULT_COMM_ADDR,
+    DEFAULT_FAMILY,
     DEFAULT_PORT_TCP,
     DEFAULT_PORT_UDP,
     DEFAULT_SCAN_INTERVAL,
     DOMAIN,
+    INVERTER_FAMILIES,
     PROTOCOL_TCP,
     PROTOCOL_UDP,
 )
@@ -37,14 +40,27 @@ async def validate_input(data: dict[str, Any]) -> dict[str, Any]:
     port = data.get(CONF_PORT)
     protocol = data[CONF_PROTOCOL]
     comm_addr = data.get(CONF_COMM_ADDR, DEFAULT_COMM_ADDR)
+    family: str = data.get(CONF_FAMILY, DEFAULT_FAMILY)
+    # Pass None to the library when "auto" so it runs its own discovery
+    family_arg: str | None = None if family == DEFAULT_FAMILY else family
 
     try:
         # Attempt to connect to the inverter
         if protocol == PROTOCOL_UDP:
-            inverter = await connect(host, port or DEFAULT_PORT_UDP, comm_addr=comm_addr)
-        else:  # TCP
-            _LOGGER.debug("TCP configured %s", PROTOCOL_TCP)
-            inverter = await connect(host, port or DEFAULT_PORT_TCP, comm_addr=comm_addr)
+            inverter = await connect(
+                host, port or DEFAULT_PORT_UDP,
+                family=cast(str, family_arg), comm_addr=comm_addr,
+            )
+        else:  # TCP — family MUST be set; discovery always uses UDP internally
+            if family_arg is None:
+                raise CannotConnect(
+                    "Inverter family must be selected explicitly when using TCP protocol."
+                )
+            _LOGGER.debug("TCP configured with family=%s", family_arg)
+            inverter = await connect(
+                host, port or DEFAULT_PORT_TCP,
+                family=family_arg, comm_addr=comm_addr,
+            )
 
         # Try to read runtime data to verify connection
         await inverter.read_runtime_data()
@@ -96,6 +112,7 @@ class GoodweModbusConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(CONF_PROTOCOL, default=PROTOCOL_UDP): vol.In(
                     [PROTOCOL_UDP, PROTOCOL_TCP]
                 ),
+                vol.Required(CONF_FAMILY, default=DEFAULT_FAMILY): vol.In(INVERTER_FAMILIES),
                 vol.Optional(CONF_PORT): cv.port,
                 vol.Optional(CONF_COMM_ADDR, default=DEFAULT_COMM_ADDR): cv.positive_int,
             }

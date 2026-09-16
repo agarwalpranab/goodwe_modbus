@@ -12,8 +12,10 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 from custom_components.goodwe_modbus.config_flow import CannotConnect
 from custom_components.goodwe_modbus.const import (
     CONF_COMM_ADDR,
+    CONF_FAMILY,
     CONF_PROTOCOL,
     DEFAULT_COMM_ADDR,
+    DEFAULT_FAMILY,
     DOMAIN,
     PROTOCOL_UDP,
 )
@@ -32,6 +34,7 @@ async def test_form_udp(hass: HomeAssistant, mock_connect, mock_setup_entry) -> 
         {
             CONF_HOST: "192.168.1.100",
             CONF_PROTOCOL: PROTOCOL_UDP,
+            CONF_FAMILY: DEFAULT_FAMILY,
             CONF_COMM_ADDR: DEFAULT_COMM_ADDR,
         },
     )
@@ -42,6 +45,7 @@ async def test_form_udp(hass: HomeAssistant, mock_connect, mock_setup_entry) -> 
     assert result2["data"] == {
         CONF_HOST: "192.168.1.100",
         CONF_PROTOCOL: PROTOCOL_UDP,
+        CONF_FAMILY: DEFAULT_FAMILY,
         CONF_COMM_ADDR: DEFAULT_COMM_ADDR,
     }
     assert len(mock_setup_entry.mock_calls) == 1
@@ -58,6 +62,7 @@ async def test_form_tcp(hass: HomeAssistant, mock_connect, mock_setup_entry) -> 
         {
             CONF_HOST: "192.168.1.100",
             CONF_PROTOCOL: "TCP",
+            CONF_FAMILY: "ET",
             CONF_PORT: 502,
             CONF_COMM_ADDR: DEFAULT_COMM_ADDR,
         },
@@ -81,6 +86,7 @@ async def test_form_cannot_connect(hass: HomeAssistant, mock_connect) -> None:
         {
             CONF_HOST: "192.168.1.100",
             CONF_PROTOCOL: PROTOCOL_UDP,
+            CONF_FAMILY: DEFAULT_FAMILY,
         },
     )
 
@@ -103,6 +109,7 @@ async def test_form_unknown_error(hass: HomeAssistant) -> None:
             {
                 CONF_HOST: "192.168.1.100",
                 CONF_PROTOCOL: PROTOCOL_UDP,
+                CONF_FAMILY: DEFAULT_FAMILY,
             },
         )
 
@@ -134,6 +141,7 @@ async def test_form_already_configured(
         {
             CONF_HOST: "192.168.1.100",
             CONF_PROTOCOL: PROTOCOL_UDP,
+            CONF_FAMILY: DEFAULT_FAMILY,
         },
     )
 

@@ -6,10 +6,15 @@ DOMAIN: Final = "goodwe_modbus"
 # Configuration
 CONF_PROTOCOL: Final = "protocol"
 CONF_COMM_ADDR: Final = "comm_addr"
+CONF_FAMILY: Final = "family"
 
 # Protocol types
 PROTOCOL_UDP: Final = "UDP"
 PROTOCOL_TCP: Final = "TCP"
+
+# Inverter families (must match goodwe library strings exactly)
+INVERTER_FAMILIES: Final = ["auto", "ET", "EH", "BT", "BH", "ES", "EM", "BP", "DT", "MS", "NS", "XS"]
+DEFAULT_FAMILY: Final = "auto"
 
 # Default values
 DEFAULT_NAME: Final = "Goodwe Inverter"

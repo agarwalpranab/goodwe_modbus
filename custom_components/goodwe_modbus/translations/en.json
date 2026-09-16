@@ -7,12 +7,14 @@
         "data": {
           "host": "IP Address",
           "protocol": "Protocol",
+          "family": "Inverter Family",
           "port": "Port (optional)",
           "comm_addr": "Communication Address"
         },
         "data_description": {
           "host": "The IP address of your Goodwe inverter",
           "protocol": "Select UDP (default) or TCP protocol",
+          "family": "Inverter family (auto-detect for UDP; must be set explicitly for TCP)",
           "port": "Custom port (UDP: 8899, TCP: 502)",
           "comm_addr": "Modbus communication address (default: 247)"
         }
