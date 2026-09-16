@@ -1,0 +1,4 @@
+# Requirements for development and testing
+goodwe>=0.3.0
+pytest>=7.4.0
+pytest-homeassistant-custom-component>=0.13.0

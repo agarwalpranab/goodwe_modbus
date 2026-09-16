@@ -1,0 +1,113 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure Goodwe Modbus",
+        "description": "Set up your Goodwe inverter connection",
+        "data": {
+          "host": "IP Address",
+          "protocol": "Protocol",
+          "port": "Port (optional)",
+          "comm_addr": "Communication Address"
+        },
+        "data_description": {
+          "host": "The IP address of your Goodwe inverter",
+          "protocol": "Select UDP (default) or TCP protocol",
+          "port": "Custom port (UDP: 8899, TCP: 502)",
+          "comm_addr": "Modbus communication address (default: 247)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the inverter. Please check the IP address, protocol, and network connection.",
+      "unknown": "Unexpected error occurred. Please check the logs for more details."
+    },
+    "abort": {
+      "already_configured": "This inverter is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Goodwe Modbus Options",
+        "description": "Configure update interval and other options",
+        "data": {
+          "scan_interval": "Update Interval (seconds)"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the inverter for new data (default: 30 seconds)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "vpv1": {
+        "name": "PV1 Voltage"
+      },
+      "vpv2": {
+        "name": "PV2 Voltage"
+      },
+      "ipv1": {
+        "name": "PV1 Current"
+      },
+      "ipv2": {
+        "name": "PV2 Current"
+      },
+      "vgrid": {
+        "name": "Grid Voltage"
+      },
+      "igrid": {
+        "name": "Grid Current"
+      },
+      "fgrid": {
+        "name": "Grid Frequency"
+      },
+      "pgrid": {
+        "name": "Grid Power"
+      },
+      "work_mode": {
+        "name": "Work Mode"
+      },
+      "temperature": {
+        "name": "Inverter Temperature"
+      },
+      "error_codes": {
+        "name": "Error Codes"
+      },
+      "e_day": {
+        "name": "Energy Today"
+      },
+      "e_total": {
+        "name": "Energy Total"
+      },
+      "h_total": {
+        "name": "Hours Total"
+      },
+      "ppv": {
+        "name": "PV Power"
+      },
+      "battery_soc": {
+        "name": "Battery State of Charge"
+      },
+      "battery_voltage": {
+        "name": "Battery Voltage"
+      },
+      "battery_current": {
+        "name": "Battery Current"
+      },
+      "battery_power": {
+        "name": "Battery Power"
+      },
+      "battery_mode": {
+        "name": "Battery Mode"
+      },
+      "load_power": {
+        "name": "Load Power"
+      },
+      "backup_power": {
+        "name": "Backup Power"
+      }
+    }
+  }
+}

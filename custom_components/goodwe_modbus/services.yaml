@@ -1,0 +1,17 @@
+# Services for Goodwe Modbus integration
+
+read_runtime_data:
+  name: Read Runtime Data
+  description: Manually trigger a read of runtime data from the inverter
+  target:
+    device:
+      integration: goodwe_modbus
+
+read_settings:
+  name: Read Settings
+  description: Read current settings from the inverter
+  target:
+    device:
+      integration: goodwe_modbus
+
+# Made with Bob

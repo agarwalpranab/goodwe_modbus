@@ -1,0 +1,43 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configure Goodwe Modbus",
+        "description": "Set up your Goodwe inverter connection",
+        "data": {
+          "host": "IP Address",
+          "protocol": "Protocol",
+          "port": "Port (optional)",
+          "comm_addr": "Communication Address"
+        },
+        "data_description": {
+          "host": "The IP address of your Goodwe inverter",
+          "protocol": "Select UDP (default) or TCP protocol",
+          "port": "Custom port (UDP: 8899, TCP: 502)",
+          "comm_addr": "Modbus communication address (default: 247)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the inverter. Please check the IP address, protocol, and network connection.",
+      "unknown": "Unexpected error occurred. Please check the logs for more details."
+    },
+    "abort": {
+      "already_configured": "This inverter is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Goodwe Modbus Options",
+        "description": "Configure update interval and other options",
+        "data": {
+          "scan_interval": "Update Interval (seconds)"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the inverter for new data (default: 30 seconds)"
+        }
+      }
+    }
+  }
+}
