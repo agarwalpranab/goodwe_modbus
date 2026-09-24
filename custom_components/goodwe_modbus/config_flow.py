@@ -50,6 +50,7 @@ async def validate_input(data: dict[str, Any]) -> dict[str, Any]:
             inverter = await connect(
                 host, port or DEFAULT_PORT_UDP,
                 family=cast(str, family_arg), comm_addr=comm_addr,
+                retries=5,
             )
         else:  # TCP — family MUST be set; discovery always uses UDP internally
             if family_arg is None:
@@ -60,6 +61,7 @@ async def validate_input(data: dict[str, Any]) -> dict[str, Any]:
             inverter = await connect(
                 host, port or DEFAULT_PORT_TCP,
                 family=family_arg, comm_addr=comm_addr,
+                retries=5,
             )
 
         # Try to read runtime data to verify connection
