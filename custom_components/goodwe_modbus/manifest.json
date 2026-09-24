@@ -8,5 +8,6 @@
   "integration_type": "device",
   "iot_class": "local_polling",
   "requirements": ["goodwe>=0.3.0"],
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "issue_tracker": ""
 }

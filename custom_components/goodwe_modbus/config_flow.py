@@ -57,7 +57,7 @@ async def validate_input(data: dict[str, Any]) -> dict[str, Any]:
                 raise CannotConnect(
                     "Inverter family must be selected explicitly when using TCP protocol."
                 )
-            _LOGGER.debug("TCP configured with family=%s", family_arg)
+            _LOGGER.error("TCP configured with family=%s", family_arg)
             inverter = await connect(
                 host, port or DEFAULT_PORT_TCP,
                 family=family_arg, comm_addr=comm_addr,
