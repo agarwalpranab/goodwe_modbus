@@ -1,0 +1,47 @@
+services:
+  goodwe-modbus:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: goodwe-modbus-mqtt:latest
+    container_name: goodwe-modbus
+    restart: unless-stopped
+
+    environment:
+      # ----------------------------------------------------------------
+      # Inverter connection  (values come from .env)
+      # ----------------------------------------------------------------
+      INVERTER_HOST: "${INVERTER_HOST}"
+      INVERTER_PROTOCOL: "${INVERTER_PROTOCOL:-UDP}"
+      INVERTER_PORT: "${INVERTER_PORT:-}"
+      INVERTER_FAMILY: "${INVERTER_FAMILY:-auto}"
+      INVERTER_COMM_ADDR: "${INVERTER_COMM_ADDR:-}"
+      SCAN_INTERVAL: "${SCAN_INTERVAL:-30}"
+
+      # ----------------------------------------------------------------
+      # MQTT broker  (values come from .env)
+      # ----------------------------------------------------------------
+      MQTT_HOST: "${MQTT_HOST}"
+      MQTT_PORT: "${MQTT_PORT:-1883}"
+      MQTT_USERNAME: "${MQTT_USERNAME:-}"
+      MQTT_PASSWORD: "${MQTT_PASSWORD:-}"
+      MQTT_TOPIC_PREFIX: "${MQTT_TOPIC_PREFIX:-goodwe}"
+      MQTT_CLIENT_ID: "${MQTT_CLIENT_ID:-goodwe-modbus}"
+
+      # ----------------------------------------------------------------
+      # Home Assistant MQTT Discovery  (values come from .env)
+      # ----------------------------------------------------------------
+      MQTT_HA_DISCOVERY: "${MQTT_HA_DISCOVERY:-true}"
+      MQTT_HA_DISCOVERY_PREFIX: "${MQTT_HA_DISCOVERY_PREFIX:-homeassistant}"
+
+      # ----------------------------------------------------------------
+      # Logging  (values come from .env)
+      # ----------------------------------------------------------------
+      LOG_LEVEL: "${LOG_LEVEL:-INFO}"
+
+    networks:
+      - iot
+
+networks:
+  iot:
+    driver: bridge
