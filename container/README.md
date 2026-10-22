@@ -110,6 +110,67 @@ docker run --rm \
 
 ---
 
+## Synology deployment (Container Manager)
+
+The image is published on Docker Hub as `agarwalpranab/goodwe-modbus-mqtt` (tags: `latest` and versioned, e.g. `1.0.0`) for `linux/amd64`, `linux/arm64` and `linux/arm/v7`, so it runs on any Synology model that supports Container Manager.  Nothing needs to be built on the NAS.
+
+The container only makes **outbound** connections (to the inverter and to the MQTT broker), so no port mappings or volumes are required.
+
+### Option A — Project (docker-compose), recommended
+
+1. In **Container Manager → Project → Create**, choose a project name (e.g. `goodwe-modbus`) and a path such as `/volume1/docker/goodwe-modbus`.
+2. Select **Create docker-compose.yml** and paste:
+
+   ```yaml
+   services:
+     goodwe-modbus:
+       image: agarwalpranab/goodwe-modbus-mqtt:latest
+       container_name: goodwe-modbus
+       restart: unless-stopped
+       environment:
+         INVERTER_HOST: "192.168.1.100"   # required
+         INVERTER_PROTOCOL: "UDP"
+         INVERTER_FAMILY: "auto"
+         SCAN_INTERVAL: "30"
+         MQTT_HOST: "192.168.1.10"        # required — broker LAN IP, not localhost
+         MQTT_PORT: "1883"
+         MQTT_USERNAME: ""
+         MQTT_PASSWORD: ""
+         MQTT_TOPIC_PREFIX: "goodwe"
+         MQTT_HA_DISCOVERY: "true"
+         MQTT_HA_DISCOVERY_PREFIX: "homeassistant"
+         LOG_LEVEL: "INFO"
+       # network_mode: host   # uncomment if the inverter is unreachable from the default bridge network
+   ```
+
+3. Click **Next → Done**.  Container Manager pulls the image and starts the container.
+
+### Option B — Manual container
+
+1. **Registry**: search for `agarwalpranab/goodwe-modbus-mqtt`, click **Download**, and pick the `latest` tag (or a pinned version).
+2. **Container → Create** and use these settings:
+
+   | Setting | Value |
+   |---|---|
+   | Image | `agarwalpranab/goodwe-modbus-mqtt:latest` |
+   | Container name | `goodwe-modbus` |
+   | Enable auto-restart | On |
+   | Port settings | None |
+   | Volume settings | None |
+   | Network | `bridge` (default); use `host` if the inverter does not respond over UDP |
+   | Execution command | Leave empty (image runs `python main.py`) |
+
+3. Under **Advanced Settings → Environment**, add the variables from the [Environment variables](#environment-variables) table.  At minimum set `INVERTER_HOST` and `MQTT_HOST`.
+
+### Synology notes
+
+- **`MQTT_HOST` must not be `localhost`** — inside the container that refers to the container itself.  Use the broker's LAN IP.  If Mosquitto runs on the same NAS, use the NAS IP and make sure its port 1883 is published.
+- **One client per inverter**: stop any other integration (e.g. the Home Assistant GoodWe integration) that polls the same inverter; the inverter's WiFi module handles concurrent connections poorly.
+- **Updating**: download the new image tag, then stop, clear and start the container (or **Project → Build/Action → Rebuild** for Option A).  Pin a version tag to avoid unexpected updates.
+- **Verify**: open the container's **Log** tab; you should see successful connections to the inverter and the MQTT broker, and sensors appearing in Home Assistant.
+
+---
+
 ## Directory layout
 
 ```
