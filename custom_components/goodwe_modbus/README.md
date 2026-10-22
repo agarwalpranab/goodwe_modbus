@@ -13,10 +13,13 @@ A Home Assistant custom integration for Goodwe solar inverters using the Modbus 
 
 ## Supported Sensors
 
-The integration provides the following sensors:
+Sensors are created dynamically from whatever the inverter reports (names, units
+and device classes come from the goodwe library's own sensor definitions), so
+the list below is typical rather than fixed. For example, a 4-string inverter
+gets PV1–PV4 automatically.
 
 ### Solar Production
-- PV1/PV2 Voltage and Current
+- PV1…PVn Voltage and Current (as many strings as the inverter has)
 - Total PV Power
 - Energy Today
 - Energy Total

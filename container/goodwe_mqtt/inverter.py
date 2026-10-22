@@ -8,6 +8,7 @@ from typing import Any, Callable, Awaitable, cast, Optional
 from goodwe import connect, Inverter
 
 from .config import InverterConfig
+from .const import build_sensor_meta
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -62,6 +63,8 @@ class InverterPoller:
         self._on_data = on_data
         self._inverter: Optional[Inverter] = None
         self.inverter_info: dict[str, str] = {}
+        # sensor id -> HA discovery metadata, built from the inverter's own definitions
+        self.sensor_meta: dict[str, dict[str, Any]] = {}
 
     # ------------------------------------------------------------------
     # Public API
@@ -123,6 +126,10 @@ class InverterPoller:
         await inverter.read_runtime_data()
 
         self._inverter = inverter
+        self.sensor_meta = {
+            s.id_: build_sensor_meta(s.id_, s.name, s.unit, s.kind)
+            for s in inverter.sensors()
+        }
         self.inverter_info = {
             "serial_number": getattr(inverter, "serial_number", "unknown"),
             "model_name": getattr(inverter, "model_name", "unknown"),

@@ -72,8 +72,8 @@ If you don't already have an MQTT broker, the included `docker-compose.yml` also
 
 | Key | Name | Unit |
 |---|---|---|
-| `vpv1` / `vpv2` | PV1/PV2 Voltage | V |
-| `ipv1` / `ipv2` | PV1/PV2 Current | A |
+| `vpv1` … `vpv4` | PV1–PV4 Voltage | V |
+| `ipv1` … `ipv4` | PV1–PV4 Current | A |
 | `ppv` | PV Power | W |
 | `vgrid` | Grid Voltage | V |
 | `igrid` | Grid Current | A |
@@ -183,7 +183,7 @@ container/
 ├── goodwe_mqtt/
 │   ├── __init__.py
 │   ├── config.py            # env-var config loader
-│   ├── const.py             # sensor registry
+│   ├── const.py             # unit/kind → HA metadata mapping
 │   ├── inverter.py          # async Goodwe poller
 │   └── mqtt.py              # MQTT publisher + HA discovery
 └── mosquitto/

@@ -72,69 +72,44 @@ async def test_connection(
         print(json.dumps(runtime_data, indent=2, default=str))
         
         
-        # Organize data by category
-        categories = {
-            "PV Production": ["vpv1", "vpv2", "vpv3", "vpv4", "ipv1", "ipv2", 
-            "ipv3", "ipv4", "ppv"],
-            "Grid": ["vgrid", "igrid", "fgrid", "pgrid"],
-            "Battery": ["battery_soc", "battery_voltage", "battery_current", 
-                       "battery_power", "battery_mode"],
-            "Energy": ["e_day", "e_total", "h_total"],
-            "System": ["work_mode", "temperature", "error_codes", "load_power", 
-                      "backup_power"],
+        # Group data dynamically using the inverter's own sensor definitions
+        # (name, unit and kind) instead of hard-coded key lists.
+        sensor_defs = {s.id_: s for s in inverter.sensors()}
+        kind_titles = {
+            "PV": "PV Production",
+            "AC": "Inverter AC Output",
+            "UPS": "Backup / UPS Output",
+            "BAT": "Battery",
+            "GRID": "Grid / Smart Meter",
+            "BMS": "BMS",
         }
-        
-        # Display data by category
-        for category, keys in categories.items():
-            category_data = {k: v for k, v in runtime_data.items() if k in keys}
-            if category_data:
-                print(f"\n{category}:")
-                print("-" * 70)
-                for key, value in category_data.items():
-                    # Format the key nicely
-                    display_key = key.replace("_", " ").title()
-                    
-                    # Add units based on key
-                    if "voltage" in key or key.startswith("v"):
-                        unit = "V"
-                    elif "current" in key or key.startswith("i"):
-                        unit = "A"
-                    elif "power" in key or key.startswith("p"):
-                        unit = "W"
-                    elif "frequency" in key or key.startswith("f"):
-                        unit = "Hz"
-                    elif "temperature" in key:
-                        unit = "°C"
-                    elif "soc" in key:
-                        unit = "%"
-                    elif "e_day" in key or "e_total" in key:
-                        unit = "kWh"
-                    elif "h_total" in key:
-                        unit = "h"
-                    else:
-                        unit = ""
-                    
-                    # Format value
-                    if isinstance(value, (int, float)):
-                        formatted_value = f"{value:,.2f}" if isinstance(value, float) else f"{value:,}"
-                    else:
-                        formatted_value = str(value)
-                    
-                    print(f"  {display_key:.<30} {formatted_value:>15} {unit}")
-        
-        # Display any remaining data
-        displayed_keys = set()
-        for keys in categories.values():
-            displayed_keys.update(keys)
-        
-        other_data = {k: v for k, v in runtime_data.items() if k not in displayed_keys}
-        if other_data:
-            print(f"\nOther Data:")
+
+        groups: dict[str, list[tuple[str, Any]]] = {}
+        for key, value in runtime_data.items():
+            sensor = sensor_defs.get(key)
+            kind_name = getattr(getattr(sensor, "kind", None), "name", None)
+            title = kind_titles.get(kind_name, "Other Data")
+            groups.setdefault(title, []).append((key, value))
+
+        for title, items in groups.items():
+            print(f"\n{title}:")
             print("-" * 70)
-            for key, value in other_data.items():
-                display_key = key.replace("_", " ").title()
-                formatted_value = str(value) if value is not None else "N/A"
-                print(f"  {display_key:.<30} {formatted_value:>15}")
+            for key, value in items:
+                sensor = sensor_defs.get(key)
+                display_key = (sensor.name if sensor and sensor.name
+                               else key.replace("_", " ").title())
+                unit = sensor.unit if sensor and sensor.unit else ""
+
+                if value is None:
+                    formatted_value = "N/A"
+                elif isinstance(value, float):
+                    formatted_value = f"{value:,.2f}"
+                elif isinstance(value, int):
+                    formatted_value = f"{value:,}"
+                else:
+                    formatted_value = str(value)
+
+                print(f"  {display_key:.<30} {formatted_value:>15} {unit}")
         
         print("\n" + "=" * 70)
         print("✅ Test completed successfully!")

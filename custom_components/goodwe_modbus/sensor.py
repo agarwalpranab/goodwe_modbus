@@ -11,12 +11,12 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_HOST
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, SENSOR_TYPES
+from .const import DOMAIN, build_sensor_meta, build_sensor_types
 from .coordinator import GoodweModbusDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,22 +33,30 @@ async def async_setup_entry(
     ]
     inverter = hass.data[DOMAIN][entry.entry_id]["inverter"]
 
-    # Create sensor entities for all available sensor types
-    entities = []
-    for sensor_key, sensor_config in SENSOR_TYPES.items():
-        # Only create sensor if data is available
-        if sensor_key in coordinator.data:
-            entities.append(
-                GoodweModbusSensor(
-                    coordinator,
-                    entry,
-                    sensor_key,
-                    sensor_config,
-                    inverter,
-                )
-            )
+    # Metadata comes from the inverter's own sensor definitions
+    sensor_types = build_sensor_types(inverter)
+    known_keys: set[str] = set()
 
-    async_add_entities(entities)
+    @callback
+    def _add_new_sensors() -> None:
+        """Create entities for every key in the data not yet registered."""
+        new_entities = []
+        for sensor_key in coordinator.data or {}:
+            if sensor_key in known_keys:
+                continue
+            known_keys.add(sensor_key)
+            sensor_config = sensor_types.get(sensor_key) or build_sensor_meta(
+                sensor_key, None, None, None
+            )
+            new_entities.append(
+                GoodweModbusSensor(coordinator, entry, sensor_key, sensor_config, inverter)
+            )
+        if new_entities:
+            async_add_entities(new_entities)
+
+    _add_new_sensors()
+    # Pick up keys that only appear on later polls
+    entry.async_on_unload(coordinator.async_add_listener(_add_new_sensors))
 
 
 class GoodweModbusSensor(CoordinatorEntity[GoodweModbusDataUpdateCoordinator], SensorEntity):

@@ -9,7 +9,7 @@ from typing import Any
 import aiomqtt
 
 from .config import MqttConfig
-from .const import SENSOR_TYPES
+from .const import build_sensor_meta
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class MqttPublisher:
     def __init__(self, cfg: MqttConfig) -> None:
         self._cfg = cfg
         self._client: aiomqtt.Client | None = None
-        self._discovery_sent = False
+        self._announced: set[str] = set()
 
     # ------------------------------------------------------------------
     # Lifecycle
@@ -64,8 +64,13 @@ class MqttPublisher:
     # Publishing
     # ------------------------------------------------------------------
 
-    async def publish_discovery(self, inverter_info: dict[str, str]) -> None:
-        """Emit HA MQTT discovery config messages for all sensor types."""
+    async def publish_discovery(
+        self,
+        inverter_info: dict[str, str],
+        data: dict[str, Any],
+        sensor_meta: dict[str, dict[str, Any]],
+    ) -> None:
+        """Emit HA MQTT discovery config for every key in *data* not yet announced."""
         if not self._cfg.ha_discovery:
             return
         if self._client is None:
@@ -86,7 +91,11 @@ class MqttPublisher:
         prefix = self._cfg.ha_discovery_prefix
         topic_prefix = self._cfg.topic_prefix
 
-        for sensor_key, sensor_cfg in SENSOR_TYPES.items():
+        new_keys = [k for k in data if k not in self._announced]
+        for sensor_key in new_keys:
+            sensor_cfg = sensor_meta.get(sensor_key) or build_sensor_meta(
+                sensor_key, sensor_key.replace("_", " ").title(), None, None
+            )
             state_topic = f"{topic_prefix}/{serial}/sensor/{sensor_key}/state"
             unique_id = f"goodwe_{serial}_{sensor_key}"
 
@@ -112,9 +121,10 @@ class MqttPublisher:
                 retain=True,
             )
             _LOGGER.debug("Published HA discovery for %s → %s", sensor_key, discovery_topic)
+            self._announced.add(sensor_key)
 
-        self._discovery_sent = True
-        _LOGGER.info("Published HA MQTT discovery for %d sensors (serial=%s)", len(SENSOR_TYPES), serial)
+        if new_keys:
+            _LOGGER.info("Published HA MQTT discovery for %d sensors (serial=%s)", len(new_keys), serial)
 
     async def publish_data(
         self, data: dict[str, Any], inverter_info: dict[str, str]
@@ -145,11 +155,11 @@ class MqttPublisher:
         self,
         data: dict[str, Any],
         inverter_info: dict[str, str],
+        sensor_meta: dict[str, dict[str, Any]],
     ) -> None:
         """Publish data, reconnecting once on transient MQTT failures."""
         try:
-            if not self._discovery_sent:
-                await self.publish_discovery(inverter_info)
+            await self.publish_discovery(inverter_info, data, sensor_meta)
             await self.publish_data(data, inverter_info)
         except Exception as exc:
             _LOGGER.warning("MQTT publish failed (%s) — reconnecting", exc)
@@ -158,6 +168,6 @@ class MqttPublisher:
             except Exception:
                 pass
             await self.connect()
-            self._discovery_sent = False
-            await self.publish_discovery(inverter_info)
+            self._announced.clear()
+            await self.publish_discovery(inverter_info, data, sensor_meta)
             await self.publish_data(data, inverter_info)

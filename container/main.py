@@ -41,9 +41,9 @@ async def run() -> None:
 
     # This callback is invoked by InverterPoller on every successful poll.
     async def on_data(data: dict[str, Any]) -> None:
-        await publisher.publish_with_reconnect(data, poller.inverter_info)
+        await publisher.publish_with_reconnect(data, poller.inverter_info, poller.sensor_meta)
 
-    poller = InverterPoller(cfg.inverter, on_data)
+    poller: InverterPoller = InverterPoller(cfg.inverter, on_data)
 
     # Graceful shutdown on SIGINT / SIGTERM
     loop = asyncio.get_running_loop()
